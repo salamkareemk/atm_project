@@ -1,0 +1,91 @@
+# ================= ATM MACHINE =================
+
+users = {
+    "salam": {"pin": 1234, "balance": 5000},
+    "rasmina": {"pin": 0000, "balance": 5000},
+    "lasheen": {"pin": 1111, "balance": 5000},
+    "adithyan": {"pin": 2222, "balance": 5000},
+    "shameem": {"pin": 3333, "balance": 5000},
+}
+
+print("WELCOME TO SALAM ATM MACHINE")
+print()
+
+choice = int(input("1.Already have account  2.New user : "))
+
+# ================= LOGIN FUNCTION =================
+def login(username):
+    attempts = 0
+    while attempts < 3:
+        pin = int(input("Enter your 4-digit PIN: "))
+        if pin == users[username]["pin"]:
+            print("\n✅ Login successful\n")
+            atm_menu(username)
+            return
+        else:
+            attempts += 1
+            print("❌ Incorrect PIN")
+            print(3 - attempts, "attempts left\n")
+
+    print("🔒 Too many wrong attempts. Account locked.")
+
+# ================= ATM MENU =================
+def atm_menu(username):
+    while True:
+        print("\n----- ATM MENU -----")
+        print("1. Check Balance")
+        print("2. Deposit")
+        print("3. Withdraw")
+        print("4. Exit")
+
+        option = int(input("Choose an option: "))
+
+        if option == 1:
+            print("💰 Your balance is:", users[username]["balance"])
+
+        elif option == 2:
+            amount = int(input("Enter deposit amount: "))
+            if amount > 0:
+                users[username]["balance"] += amount
+                print("✅ Amount deposited successfully")
+                print("New balance:", users[username]["balance"])
+            else:
+                print("❌ Invalid amount")
+
+        elif option == 3:
+            amount = int(input("Enter withdraw amount: "))
+            if amount <= users[username]["balance"]:
+                users[username]["balance"] -= amount
+                print("✅ Please collect your cash")
+                print("Remaining balance:", users[username]["balance"])
+            else:
+                print("❌ Insufficient balance")
+
+        elif option == 4:
+            print("🙏 Thank you for using Salam ATM")
+            break
+
+        else:
+            print("❌ Invalid option")
+
+# ================= MAIN LOGIC =================
+if choice == 1:
+    name = input("Enter your name: ").lower()
+    if name in users:
+        login(name)
+    else:
+        print("❌ Invalid username")
+
+elif choice == 2:
+    new_user = input("Create username: ").lower()
+    if new_user in users:
+        print("❌ Username already exists")
+    else:
+        new_pin = int(input("Create 4-digit PIN: "))
+        users[new_user] = {"pin": new_pin, "balance": 5000}
+        print("\n✅ Account created successfully!")
+        print("Now login\n")
+        login(new_user)
+
+else:
+    print("❌ Invalid choice")
