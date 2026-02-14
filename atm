@@ -1,1 +1,192 @@
+import tkinter as tk
+from tkinter import messagebox
+
+# ================= DATA =================
+users = {
+    "salam": {"pin": 1234, "balance": 5000},
+    "rasmina": {"pin": 0, "balance": 5000},
+    "lasheen": {"pin": 1111, "balance": 5000},
+    "adithyan": {"pin": 2222, "balance": 5000},
+    "shameem": {"pin": 3333, "balance": 5000},
+}
+
+current_user = None
+attempts = 0
+
+# ================= MAIN WINDOW =================
+root = tk.Tk()
+root.title("Salam ATM Machine")
+root.geometry("400x400")
+root.config(bg="#1e1e2f")
+
+# ================= HELPERS =================
+def clear():
+    for widget in root.winfo_children():
+        widget.destroy()
+
+# ================= WELCOME SCREEN =================
+def welcome_screen():
+    clear()
+
+    tk.Label(root, text="🏧 Salam ATM Machine", font=("Arial", 18, "bold"),
+             bg="#1e1e2f", fg="white").pack(pady=30)
+
+    tk.Button(root, text="Login", width=20, height=2, command=login_screen).pack(pady=10)
+    tk.Button(root, text="Create Account", width=20, height=2, command=create_screen).pack(pady=10)
+
+# ================= LOGIN SCREEN =================
+def login_screen():
+    clear()
+
+    tk.Label(root, text="Login", font=("Arial", 16, "bold"),
+             bg="#1e1e2f", fg="white").pack(pady=20)
+
+    tk.Label(root, text="Username", bg="#1e1e2f", fg="white").pack()
+    username_entry = tk.Entry(root)
+    username_entry.pack()
+
+    tk.Label(root, text="PIN", bg="#1e1e2f", fg="white").pack()
+    pin_entry = tk.Entry(root, show="*")
+    pin_entry.pack()
+
+    def attempt_login():
+        global current_user, attempts
+
+        username = username_entry.get().lower()
+        pin = pin_entry.get()
+
+        if username not in users:
+            messagebox.showerror("Error", "Invalid Username")
+            return
+
+        if not pin.isdigit():
+            messagebox.showerror("Error", "PIN must be numbers")
+            return
+
+        if int(pin) == users[username]["pin"]:
+            current_user = username
+            attempts = 0
+            messagebox.showinfo("Success", "Login Successful")
+            atm_menu()
+        else:
+            attempts += 1
+            remaining = 3 - attempts
+            messagebox.showerror("Error", f"Wrong PIN\n{remaining} attempts left")
+
+            if attempts >= 3:
+                messagebox.showwarning("Locked", "Too many attempts!")
+                welcome_screen()
+
+    tk.Button(root, text="Login", width=20, command=attempt_login).pack(pady=10)
+    tk.Button(root, text="Back", width=20, command=welcome_screen).pack()
+
+# ================= CREATE ACCOUNT =================
+def create_screen():
+    clear()
+
+    tk.Label(root, text="Create Account", font=("Arial", 16, "bold"),
+             bg="#1e1e2f", fg="white").pack(pady=20)
+
+    tk.Label(root, text="New Username", bg="#1e1e2f", fg="white").pack()
+    new_user_entry = tk.Entry(root)
+    new_user_entry.pack()
+
+    tk.Label(root, text="New PIN", bg="#1e1e2f", fg="white").pack()
+    new_pin_entry = tk.Entry(root, show="*")
+    new_pin_entry.pack()
+
+    def create_account():
+        username = new_user_entry.get().lower()
+        pin = new_pin_entry.get()
+
+        if username in users:
+            messagebox.showerror("Error", "Username already exists")
+            return
+
+        if not pin.isdigit() or len(pin) != 4:
+            messagebox.showerror("Error", "PIN must be 4 digits")
+            return
+
+        users[username] = {"pin": int(pin), "balance": 5000}
+        messagebox.showinfo("Success", "Account Created!")
+        login_screen()
+
+    tk.Button(root, text="Create", width=20, command=create_account).pack(pady=10)
+    tk.Button(root, text="Back", width=20, command=welcome_screen).pack()
+
+# ================= ATM MENU =================
+def atm_menu():
+    clear()
+
+    tk.Label(root, text=f"Welcome, {current_user}", font=("Arial", 14, "bold"),
+             bg="#1e1e2f", fg="white").pack(pady=20)
+
+    tk.Button(root, text="Check Balance", width=20, height=2, command=check_balance).pack(pady=5)
+    tk.Button(root, text="Deposit", width=20, height=2, command=deposit_screen).pack(pady=5)
+    tk.Button(root, text="Withdraw", width=20, height=2, command=withdraw_screen).pack(pady=5)
+    tk.Button(root, text="Exit", width=20, height=2, command=welcome_screen).pack(pady=20)
+
+# ================= BALANCE =================
+def check_balance():
+    balance = users[current_user]["balance"]
+    messagebox.showinfo("Balance", f"Your Balance: ₹{balance}")
+
+# ================= DEPOSIT =================
+def deposit_screen():
+    clear()
+
+    tk.Label(root, text="Deposit Amount", font=("Arial", 14, "bold"),
+             bg="#1e1e2f", fg="white").pack(pady=20)
+
+    amount_entry = tk.Entry(root)
+    amount_entry.pack()
+
+    def deposit():
+        amount = amount_entry.get()
+
+        if not amount.isdigit():
+            messagebox.showerror("Error", "Enter valid amount")
+            return
+
+        amount = int(amount)
+        users[current_user]["balance"] += amount
+        messagebox.showinfo("Success", "Amount Deposited")
+        atm_menu()
+
+    tk.Button(root, text="Deposit", width=20, command=deposit).pack(pady=10)
+    tk.Button(root, text="Back", width=20, command=atm_menu).pack()
+
+# ================= WITHDRAW =================
+def withdraw_screen():
+    clear()
+
+    tk.Label(root, text="Withdraw Amount", font=("Arial", 14, "bold"),
+             bg="#1e1e2f", fg="white").pack(pady=20)
+
+    amount_entry = tk.Entry(root)
+    amount_entry.pack()
+
+    def withdraw():
+        amount = amount_entry.get()
+
+        if not amount.isdigit():
+            messagebox.showerror("Error", "Enter valid amount")
+            return
+
+        amount = int(amount)
+
+        if amount > users[current_user]["balance"]:
+            messagebox.showerror("Error", "Insufficient Balance")
+        else:
+            users[current_user]["balance"] -= amount
+            messagebox.showinfo("Success", "Collect Your Cash")
+
+        atm_menu()
+
+    tk.Button(root, text="Withdraw", width=20, command=withdraw).pack(pady=10)
+    tk.Button(root, text="Back", width=20, command=atm_menu).pack()
+
+# ================= START APP =================
+welcome_screen()
+root.mainloop()
 
